@@ -1,62 +1,47 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
+import QRCode from "qrcode";
 
 export default function QrCode() {
-    const qrRef = useRef(null);
-    const [qrObj, setQrObj] = useState(null);
-    const url = "https://shayam-mandir-git-main-deepak-sainis-projects-a032d74f.vercel.app/";
+    const canvasRef = useRef(null);
+
+    const url = "https://shayam-mandir.vercel.app/"; // <-- FINAL URL
 
     useEffect(() => {
-        // only run in browser
-        if (typeof window === "undefined") return;
-
-        // dynamic import to avoid build/SSR issues
-        let mounted = true;
-        import("qrious")
-            .then((mod) => {
-                if (!mounted) return;
-                const QRious = mod.default || mod;
-                const qr = new QRious({
-                    element: qrRef.current,
-                    value: url,
-                    size: 220,
-                });
-                setQrObj(qr);
-            })
-            .catch((err) => {
-                console.error("Failed to load qrious:", err);
-            });
-
-        return () => {
-            mounted = false;
-        };
+        QRCode.toCanvas(canvasRef.current, url, {
+            width: 220,
+            margin: 2,
+        });
     }, []);
 
     const downloadQR = () => {
-        if (!qrObj) return;
+        const canvas = canvasRef.current;
+        const url = canvas.toDataURL("image/png");
+
         const link = document.createElement("a");
-        link.download = "my_qrcode.png";
-        link.href = qrObj.toDataURL();
+        link.href = url;
+        link.download = "qr-code.png";
         link.click();
     };
 
     return (
-        <div style={{ textAlign: "center", marginTop: 50, fontFamily: "Arial" }}>
-            <h2 style={{ marginBottom: 20 }}>QR Code</h2>
-            <div style={{ marginBottom: 20 }}>
-                <canvas ref={qrRef}></canvas>
-            </div>
+        <div style={{ textAlign: "center", marginTop: "50px" }}>
+            <h2>QR Code</h2>
+            <canvas ref={canvasRef}></canvas>
+
+            <br />
             <button
                 onClick={downloadQR}
                 style={{
+                    marginTop: "20px",
                     padding: "10px 25px",
                     background: "green",
                     color: "white",
                     border: "none",
-                    borderRadius: 5,
+                    borderRadius: "5px",
                     cursor: "pointer",
                 }}
             >
-                Download QR
+                Download QR Code
             </button>
         </div>
     );
